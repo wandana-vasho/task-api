@@ -62,7 +62,7 @@ curl -i -X POST http://localhost:8000/tasks -H "Content-Type: application/json" 
 
 Open `/docs` in your browser after starting the server to try every endpoint interactively.
 
-*(Screenshot: add your own — open http://localhost:8000/docs in your browser, take a screenshot, and drop it in this repo as `swagger_screenshot.png`.)*
+![Swagger UI](swagger_screenshot.png) 
 
 ## Extras I added (stretch goals)
 
