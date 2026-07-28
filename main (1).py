@@ -36,6 +36,7 @@ def health():
 
 
 # ---- Stage 2: Read ----
+# Stage 2 confirmed working: tested GET /tasks and GET /tasks/{id} with curl
 @app.get("/tasks")
 def list_tasks(done: Optional[bool] = None, search: Optional[str] = None):
     result = tasks
