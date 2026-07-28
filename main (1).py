@@ -58,6 +58,7 @@ def get_task(task_id: int):
 
 
 # ---- Stage 3: Create ----
+# Stage 3 confirmed working: tested POST /tasks with curl, verified 400 on empty title
 @app.post("/tasks", status_code=201)
 def create_task(payload: TaskCreate):
     if not payload.title or not payload.title.strip():
