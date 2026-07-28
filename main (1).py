@@ -72,6 +72,7 @@ def create_task(payload: TaskCreate):
 
 
 # ---- Stage 4: Update & Delete ----
+# Stage 4 confirmed working: tested PUT and DELETE with curl, full CRUD cycle verified
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, payload: TaskUpdate):
     for t in tasks:
