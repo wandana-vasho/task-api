@@ -83,7 +83,7 @@ UPDATE tasks SET done = 1;
 
 This marks every task as completed. Running `GET /tasks` through the API immediately afterward reflects the change — no restart, no syncing step. The API and DB Browser are reading the exact same file; there's only one source of truth.
 
-*(Screenshot: add your own — open `tasks.db` in DB Browser for SQLite, run a query, and drop a screenshot in this repo as `db_browser_screenshot.png`.)*
+![DB Browser](db_browser_screenshot.png)
 
 ## Parameterized queries — kept safe throughout
 
