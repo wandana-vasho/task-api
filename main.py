@@ -117,6 +117,7 @@ def create_task(payload: TaskCreate):
 
 
 # ---- Stage 3: Update & Delete — UPDATE / DELETE with SQL ----
+# Stage 3 confirmed working: tested PUT and DELETE with curl, correct status codes verified
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, payload: TaskUpdate):
     conn = get_db()
