@@ -99,6 +99,7 @@ def get_task(task_id: int):
 
 
 # ---- Stage 2: Create — INSERT into the database ----
+# Stage 2 confirmed working: created a task, restarted the server, task survived - real persistence proven
 @app.post("/tasks", status_code=201)
 def create_task(payload: TaskCreate):
     if not payload.title or not payload.title.strip():
