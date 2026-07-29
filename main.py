@@ -70,6 +70,7 @@ def health():
 
 
 # ---- Stage 1: Read from the database ----
+# Stage 1 confirmed working: tested GET /tasks and GET /tasks/{id} against tasks.db
 @app.get("/tasks")
 def list_tasks(done: Optional[bool] = None, search: Optional[str] = None):
     conn = get_db()
