@@ -1,107 +1,229 @@
-# Task API — CRUD + SQLite (Backend AI Engineering, Week 3)
+# Task API — CRUD + PostgreSQL + Docker
 
-A REST API for managing a to-do list, built with **Python + FastAPI**, now backed by a real **SQLite database** instead of in-memory storage. Same endpoints as Assignment 1 — but your data now survives a server restart.
+A REST API for managing a to-do list, built with **Python + FastAPI**, backed by **PostgreSQL** and containerized with **Docker**.
 
-## What changed since Assignment 1
+The API provides CRUD operations for tasks, persistent database storage, task filtering, searching, statistics, and database management through Docker Compose.
 
-Only the **storage layer**. Every endpoint, request shape, and response shape is identical to Assignment 1 — the API is the promise, the database is where that promise is kept. Restarting the server used to wipe all tasks; now it doesn't.
+## What Changed
 
-## Why SQLite
+The project originally used SQLite for persistent storage. It has now been upgraded to **PostgreSQL 16 running inside Docker**.
 
-- **Single file, zero setup** — no separate database server to install or run, no accounts, no config
-- **Free and built into Python** — the `sqlite3` module ships with Python itself, nothing extra to install
-- **Perfect for a project this size** — a to-do list doesn't need a heavyweight database server; SQLite handles this scale easily and is a real, production-used database (not a toy)
+The API endpoints remain unchanged. The main change is the storage layer and infrastructure.
 
-## Where the database file lives
+## Why PostgreSQL + Docker
 
-`tasks.db`, created automatically in the project's root folder the first time the app runs. It's a single file — delete it and restart the app to get a completely fresh database with the 3 seeded tasks again.
+### PostgreSQL
 
-## How to install & run
+- Reliable relational database
+- Supports structured SQL queries
+- Provides persistent data storage
+- Suitable for applications that need a dedicated database
+- Separates application logic from database storage
 
-```bash
-# 1. Install dependencies (same as Assignment 1, no new packages needed —
-#    sqlite3 is part of Python's standard library)
-pip install fastapi uvicorn
+### Docker
 
-# 2. Run the server
-python3 -m uvicorn main:app --reload
-```
+- Provides a consistent development environment
+- Runs PostgreSQL without requiring a manual local PostgreSQL installation
+- Keeps the application and database isolated in containers
+- Makes the complete application stack easy to start and reproduce
+- Allows the API and database to communicate through Docker Compose networking
 
-The server starts on **http://localhost:8000**. Open **http://localhost:8000/docs** for Swagger UI.
+## How to Run
 
-On first run, `tasks.db` is created automatically, the `tasks` table is created, and 3 example tasks are seeded. Restarting the server does **not** duplicate the seed — it only happens when the table is genuinely empty.
+Make sure **Docker Desktop** is installed and running.
 
-## Endpoints
-
-Identical to Assignment 1 — same paths, same methods, same status codes:
-
-| Method | Path | Description | Success | Errors |
-|---|---|---|---|---|
-| GET | `/` | API info | 200 | — |
-| GET | `/health` | Health check | 200 | — |
-| GET | `/tasks` | List tasks (supports `?done=true` and `?search=word`) | 200 | — |
-| GET | `/tasks/{id}` | Get one task | 200 | 404 if not found |
-| POST | `/tasks` | Create a task (`{"title": "..."}`) | 201 | 400 if title missing/empty |
-| PUT | `/tasks/{id}` | Update a task | 200 | 404 if not found, 400 if title empty |
-| DELETE | `/tasks/{id}` | Delete a task | 204 | 404 if not found |
-| GET | `/stats` | Task counts, computed with SQL `COUNT(*)` | 200 | — |
-| POST | `/reset` | Wipe and re-seed the database | 200 | — |
-
-## Proof the API didn't change
-
-I re-ran the exact same curl commands from Assignment 1 against this SQLite-backed version, and every response matched — same status codes, same JSON shapes:
+From the project directory, run:
 
 ```bash
-curl -i -X POST http://localhost:8000/tasks -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
-# HTTP/1.1 201 Created
-# {"id":4,"title":"Buy milk","done":false}
-
-curl -i -X POST http://localhost:8000/tasks -H "Content-Type: application/json" -d '{}'
-# HTTP/1.1 400 Bad Request
-# {"detail":"title is required and cannot be empty"}
+docker compose up
 ```
 
-Identical tests passing against a completely different storage backend is exactly the proof that storage is "just an implementation detail" — nothing about *what the API does* changed, only *where it keeps the data*.
+Docker Compose starts:
 
-## Proof of persistence (the actual point of this assignment)
+- FastAPI application
+- PostgreSQL 16 database
 
-1. Started the server
-2. Created a task: `POST /tasks {"title": "Buy milk"}` → got back `{"id": 4, ...}`
-3. **Killed the server completely**
-4. Restarted it fresh
-5. Ran `GET /tasks` — **"Buy milk" was still there**, id 4 intact
+The API will be available at:
 
-This is the first version of this project where that's true. Assignment 1's in-memory list would have lost it completely on restart.
+`http://localhost:8000`
 
-## Stage 4 — SQL by hand
+Swagger API documentation:
 
-Opened `tasks.db` in DB Browser for SQLite and ran queries directly against the same file the API reads from. One example:
+`http://localhost:8000/docs`
 
-```sql
-UPDATE tasks SET done = 1;
+## Environment Variables
+
+Database configuration is managed using environment variables.
+
+The project uses `.env` for local configuration and `.env.example` as a template.
+
+Example:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=tasks
+DATABASE_URL=postgresql://postgres:your_password@db:5432/tasks
 ```
 
-This marks every task as completed. Running `GET /tasks` through the API immediately afterward reflects the change — no restart, no syncing step. The API and DB Browser are reading the exact same file; there's only one source of truth.
+Do not commit a real `.env` file containing passwords or other secrets to GitHub.
 
-![DB Browser](db_browser_screenshot.png)
+## API Endpoints
 
-## Parameterized queries — kept safe throughout
+| Method | Path | Description |
+|---|---|---|
+| GET | `/` | API information |
+| GET | `/health` | Health check |
+| GET | `/tasks` | List all tasks |
+| GET | `/tasks/{task_id}` | Get a specific task |
+| POST | `/tasks` | Create a task |
+| PUT | `/tasks/{task_id}` | Update a task |
+| DELETE | `/tasks/{task_id}` | Delete a task |
+| GET | `/stats` | Get task statistics |
+| POST | `/reset` | Reset task data |
 
-Every query that includes user input uses a `?` placeholder, never string concatenation:
+## CRUD Operations
 
-```python
-conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+The API supports:
+
+- **Create** — `POST /tasks`
+- **Read** — `GET /tasks` and `GET /tasks/{task_id}`
+- **Update** — `PUT /tasks/{task_id}`
+- **Delete** — `DELETE /tasks/{task_id}`
+
+## PostgreSQL Database
+
+PostgreSQL 16 runs in its own Docker container.
+
+The database name is:
+
+`tasks`
+
+The PostgreSQL service is configured in:
+
+`docker-compose.yml`
+
+The API connects to PostgreSQL through the Docker Compose service name:
+
+`db`
+
+This allows the FastAPI application container and PostgreSQL container to communicate over the Docker network.
+
+## Database Verification
+
+The PostgreSQL database can be inspected directly from the running database container.
+
+Run:
+
+```bash
+docker exec -it task-api-db-1 psql -U postgres -d tasks -c "SELECT * FROM tasks;"
 ```
 
-This is what prevents SQL injection — the database driver handles escaping the value safely, rather than trusting raw user input glued into a SQL string.
+This verifies that task data is stored in PostgreSQL.
 
-## Extras I added (stretch goals)
+## PostgreSQL Database Screenshot
 
-- **Search with SQL**: `GET /tasks?search=milk` using `LIKE`
-- **Filter with SQL**: `GET /tasks?done=true` using a `WHERE` clause
-- **Sort alphabetically**: results always come back `ORDER BY title`
-- **Real statistics**: `GET /stats` computed with SQL's `COUNT(*)`, not counted in Python
+Take a screenshot of the database command output and save it in the project folder as:
 
-## Tech
+`postgres_screenshot.png`
 
-Python 3, FastAPI, Uvicorn, `sqlite3` (Python standard library) — no external database driver, no server to run separately.
+Then add it to this README:
+
+![PostgreSQL Database](postgres_screenshot.png)
+
+## API Verification
+
+The API was tested after moving to PostgreSQL.
+
+The following operations were verified:
+
+- Creating tasks
+- Reading tasks
+- Updating tasks
+- Deleting tasks
+- Checking task statistics
+- Resetting task data
+- Checking API health
+
+The API endpoints continue to work while PostgreSQL provides persistent storage.
+
+## Docker Compose Commands
+
+### Start the application
+
+```bash
+docker compose up
+```
+
+### Start and rebuild the application
+
+```bash
+docker compose up --build
+```
+
+### Stop the application
+
+```bash
+docker compose down
+```
+
+### Stop the application and remove database volumes
+
+```bash
+docker compose down -v
+```
+
+## Project Structure
+
+```text
+task-api/
+├── main.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── README.md
+└── postgres_screenshot.png
+```
+
+## Tech Stack
+
+- Python 3
+- FastAPI
+- Uvicorn
+- PostgreSQL 16
+- Docker
+- Docker Compose
+
+## Database Persistence
+
+PostgreSQL provides persistent storage for the application.
+
+The FastAPI application and PostgreSQL database run as separate Docker containers.
+
+Docker Compose manages the connection between the application and database.
+
+The configured database volume allows PostgreSQL data to persist between container restarts.
+
+## Final Verification
+
+The complete application stack was successfully tested using Docker Compose.
+
+Start the application with:
+
+```bash
+docker compose up
+```
+
+The FastAPI application connects successfully to PostgreSQL, and the CRUD API operates against the PostgreSQL database.
+
+Swagger documentation:
+
+`http://localhost:8000/docs`
+
+## Conclusion
+
+The Task API has been upgraded from a local SQLite-based implementation to a **PostgreSQL database running with Docker**.
+
+The API interface remains consistent while the database infrastructure now provides a containerized and persistent backend environment.
