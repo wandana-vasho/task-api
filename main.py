@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()  # reads .env before repository.py needs DATABASE_URL
 
+# Stage 3 confirmed: full CRUD tested via Swagger UI against Postgres
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
