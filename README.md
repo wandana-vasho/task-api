@@ -9,6 +9,7 @@ The API provides CRUD operations for tasks, persistent database storage, task fi
 The project originally used SQLite for persistent storage. It has now been upgraded to **PostgreSQL 16 running inside Docker**.
 
 The API endpoints remain unchanged. The main change is the storage layer and infrastructure.
+The PostgreSQL repository replaces the previous storage implementation while keeping the API routes and service behavior unchanged.
 
 ## Why PostgreSQL + Docker
 
@@ -123,11 +124,7 @@ This verifies that task data is stored in PostgreSQL.
 
 ## PostgreSQL Database Screenshot
 
-Take a screenshot of the database command output and save it in the project folder as:
-
-`postgres_screenshot.png`
-
-Then add it to this README:
+The PostgreSQL database was verified directly using `psql`.
 
 ![PostgreSQL Database](postgres_screenshot.png)
 
